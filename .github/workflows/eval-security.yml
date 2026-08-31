@@ -1,0 +1,89 @@
+name: Eval and Security
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval-security:
+    name: eval-security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/api
+    env:
+      APP_ENV: test
+      ALLOW_DEMO_IDENTITY: "true"
+      CORS_ALLOWED_ORIGINS: http://127.0.0.1:3100
+      CUSTOMER_TOOLS_PROVIDER: mock
+      DATABASE_URL: postgresql+psycopg://customer_care_ci:synthetic-ci-only@127.0.0.1:5432/customer_care_test
+      LLM_PROVIDER: fake
+      LLM_MODEL: ""
+      LLM_API_KEY: ""
+      LLM_BASE_URL: ""
+      PYTHONUNBUFFERED: "1"
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg17-bookworm@sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f
+        env:
+          POSTGRES_DB: customer_care_test
+          POSTGRES_USER: customer_care_ci
+          POSTGRES_PASSWORD: synthetic-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U customer_care_ci -d customer_care_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.5"
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+
+      - name: Install locked backend dependencies
+        run: uv sync --frozen --all-groups
+
+      - name: Run deterministic triage Eval
+        run: uv run eval_triage --output-dir "$RUNNER_TEMP/evals/triage"
+
+      - name: Run RAG ACL and withdrawal Eval
+        run: >-
+          uv run eval_rag
+          --use-default-test-database
+          --output-dir "$RUNNER_TEMP/evals/rag"
+
+      - name: Run security regression
+        run: uv run pytest -q tests/security
+
+      - name: Upload versioned Eval evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: synthetic-evals-${{ github.run_id }}
+          path: ${{ runner.temp }}/evals
+          if-no-files-found: warn
+          retention-days: 14

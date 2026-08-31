@@ -1,0 +1,374 @@
+{
+  "schema_version": 1,
+  "fixture_version": "1.0.0",
+  "fixture_id": "customer-care-two-tenant-world-v1",
+  "source": "synthetic",
+  "generated_for": "local-ci-demo-only",
+  "as_of": "2026-01-15T12:00:00Z",
+  "tenants": [
+    {
+      "id": "tenant-northwind-demo",
+      "slug": "northwind-demo",
+      "name": "Northwind Demo",
+      "default_region": "cn-north",
+      "source": "synthetic"
+    },
+    {
+      "id": "tenant-contoso-demo",
+      "slug": "contoso-demo",
+      "name": "Contoso Demo",
+      "default_region": "cn-east",
+      "source": "synthetic"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "display_name": "Northwind Demo Customer 01",
+      "email": "nw-customer-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-nw-customer-02",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "display_name": "Northwind Demo Customer 02",
+      "email": "nw-customer-02@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-nw-agent-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "agent",
+      "display_name": "Northwind Demo Agent 01",
+      "email": "nw-agent-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-nw-agent-02",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "agent",
+      "display_name": "Northwind Demo Agent 02",
+      "email": "nw-agent-02@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-nw-supervisor-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "supervisor",
+      "display_name": "Northwind Demo Supervisor 01",
+      "email": "nw-supervisor-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-nw-knowledge-operator-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "knowledge_operator",
+      "display_name": "Northwind Demo Knowledge Operator 01",
+      "email": "nw-knowledge-operator-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-ct-customer-01",
+      "tenant_id": "tenant-contoso-demo",
+      "role": "customer",
+      "display_name": "Contoso Demo Customer 01",
+      "email": "ct-customer-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-ct-customer-02",
+      "tenant_id": "tenant-contoso-demo",
+      "role": "customer",
+      "display_name": "Contoso Demo Customer 02",
+      "email": "ct-customer-02@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-ct-agent-01",
+      "tenant_id": "tenant-contoso-demo",
+      "role": "agent",
+      "display_name": "Contoso Demo Agent 01",
+      "email": "ct-agent-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-ct-agent-02",
+      "tenant_id": "tenant-contoso-demo",
+      "role": "agent",
+      "display_name": "Contoso Demo Agent 02",
+      "email": "ct-agent-02@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-ct-supervisor-01",
+      "tenant_id": "tenant-contoso-demo",
+      "role": "supervisor",
+      "display_name": "Contoso Demo Supervisor 01",
+      "email": "ct-supervisor-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    },
+    {
+      "id": "user-ct-knowledge-operator-01",
+      "tenant_id": "tenant-contoso-demo",
+      "role": "knowledge_operator",
+      "display_name": "Contoso Demo Knowledge Operator 01",
+      "email": "ct-knowledge-operator-01@example.test",
+      "verification_level": "demo_verified",
+      "source": "synthetic"
+    }
+  ],
+  "customers": [
+    {
+      "id": "customer-nw-01",
+      "tenant_id": "tenant-northwind-demo",
+      "user_id": "user-nw-customer-01",
+      "external_ref": "NW-DEMO-CUSTOMER-1001",
+      "region": "cn-north",
+      "source": "synthetic"
+    },
+    {
+      "id": "customer-nw-02",
+      "tenant_id": "tenant-northwind-demo",
+      "user_id": "user-nw-customer-02",
+      "external_ref": "NW-DEMO-CUSTOMER-1002",
+      "region": "cn-south",
+      "source": "synthetic"
+    },
+    {
+      "id": "customer-ct-01",
+      "tenant_id": "tenant-contoso-demo",
+      "user_id": "user-ct-customer-01",
+      "external_ref": "CT-DEMO-CUSTOMER-2001",
+      "region": "cn-east",
+      "source": "synthetic"
+    },
+    {
+      "id": "customer-ct-02",
+      "tenant_id": "tenant-contoso-demo",
+      "user_id": "user-ct-customer-02",
+      "external_ref": "CT-DEMO-CUSTOMER-2002",
+      "region": "cn-west",
+      "source": "synthetic"
+    }
+  ],
+  "products": [
+    {
+      "id": "product-nw-headset-01",
+      "tenant_id": "tenant-northwind-demo",
+      "sku": "NW-DEMO-HEADSET-01",
+      "name": "Northwind Demo Headset",
+      "warranty_days": 365,
+      "source": "synthetic"
+    },
+    {
+      "id": "product-nw-keyboard-01",
+      "tenant_id": "tenant-northwind-demo",
+      "sku": "NW-DEMO-KEYBOARD-01",
+      "name": "Northwind Demo Keyboard",
+      "warranty_days": 180,
+      "source": "synthetic"
+    },
+    {
+      "id": "product-ct-router-01",
+      "tenant_id": "tenant-contoso-demo",
+      "sku": "CT-DEMO-ROUTER-01",
+      "name": "Contoso Demo Router",
+      "warranty_days": 365,
+      "source": "synthetic"
+    },
+    {
+      "id": "product-ct-camera-01",
+      "tenant_id": "tenant-contoso-demo",
+      "sku": "CT-DEMO-CAMERA-01",
+      "name": "Contoso Demo Camera",
+      "warranty_days": 365,
+      "source": "synthetic"
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-nw-1001",
+      "tenant_id": "tenant-northwind-demo",
+      "customer_id": "customer-nw-01",
+      "order_number": "NW-DEMO-ORDER-1001",
+      "status": "shipped",
+      "ordered_at": "2026-01-10T08:00:00Z",
+      "items": [
+        {
+          "product_id": "product-nw-headset-01",
+          "quantity": 1
+        }
+      ],
+      "source": "synthetic"
+    },
+    {
+      "id": "order-nw-1002",
+      "tenant_id": "tenant-northwind-demo",
+      "customer_id": "customer-nw-02",
+      "order_number": "NW-DEMO-ORDER-1002",
+      "status": "delivered",
+      "ordered_at": "2026-01-12T08:30:00Z",
+      "items": [
+        {
+          "product_id": "product-nw-keyboard-01",
+          "quantity": 1
+        }
+      ],
+      "source": "synthetic"
+    },
+    {
+      "id": "order-ct-2001",
+      "tenant_id": "tenant-contoso-demo",
+      "customer_id": "customer-ct-01",
+      "order_number": "CT-DEMO-ORDER-2001",
+      "status": "delivered",
+      "ordered_at": "2026-01-11T10:00:00Z",
+      "items": [
+        {
+          "product_id": "product-ct-router-01",
+          "quantity": 1
+        }
+      ],
+      "source": "synthetic"
+    },
+    {
+      "id": "order-ct-2002",
+      "tenant_id": "tenant-contoso-demo",
+      "customer_id": "customer-ct-02",
+      "order_number": "CT-DEMO-ORDER-2002",
+      "status": "shipped",
+      "ordered_at": "2026-01-14T06:00:00Z",
+      "items": [
+        {
+          "product_id": "product-ct-camera-01",
+          "quantity": 1
+        }
+      ],
+      "source": "synthetic"
+    }
+  ],
+  "warranties": [
+    {
+      "id": "warranty-nw-1002",
+      "tenant_id": "tenant-northwind-demo",
+      "order_id": "order-nw-1002",
+      "product_id": "product-nw-keyboard-01",
+      "starts_at": "2026-01-12T08:30:00Z",
+      "ends_at": "2026-07-11T08:30:00Z",
+      "status": "active",
+      "source": "synthetic"
+    },
+    {
+      "id": "warranty-ct-2001",
+      "tenant_id": "tenant-contoso-demo",
+      "order_id": "order-ct-2001",
+      "product_id": "product-ct-router-01",
+      "starts_at": "2026-01-11T10:00:00Z",
+      "ends_at": "2027-01-11T10:00:00Z",
+      "status": "active",
+      "source": "synthetic"
+    }
+  ],
+  "shipments": [
+    {
+      "id": "shipment-nw-1001",
+      "tenant_id": "tenant-northwind-demo",
+      "order_id": "order-nw-1001",
+      "tracking_number": "NW-DEMO-TRACK-1001",
+      "carrier": "Demo Express North",
+      "status": "in_transit",
+      "updated_at": "2026-01-14T04:00:00Z",
+      "source": "synthetic"
+    },
+    {
+      "id": "shipment-ct-2002",
+      "tenant_id": "tenant-contoso-demo",
+      "order_id": "order-ct-2002",
+      "tracking_number": "CT-DEMO-TRACK-2002",
+      "carrier": "Demo Express East",
+      "status": "in_transit",
+      "updated_at": "2026-01-15T02:00:00Z",
+      "source": "synthetic"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "ticket-nw-open-01",
+      "tenant_id": "tenant-northwind-demo",
+      "customer_id": "customer-nw-01",
+      "order_id": "order-nw-1001",
+      "status": "new",
+      "subject": "Demo shipment has not arrived",
+      "description": "The synthetic tracking record has not changed since yesterday.",
+      "priority": "normal",
+      "assignee_id": null,
+      "created_at": "2026-01-15T09:00:00Z",
+      "closed_at": null,
+      "source": "synthetic"
+    },
+    {
+      "id": "ticket-nw-closed-01",
+      "tenant_id": "tenant-northwind-demo",
+      "customer_id": "customer-nw-02",
+      "order_id": "order-nw-1002",
+      "status": "closed",
+      "subject": "Demo keyboard key response question",
+      "description": "A synthetic keyboard issue was resolved and the ticket was closed.",
+      "priority": "low",
+      "assignee_id": "user-nw-agent-01",
+      "created_at": "2026-01-13T03:00:00Z",
+      "closed_at": "2026-01-14T03:00:00Z",
+      "source": "synthetic"
+    },
+    {
+      "id": "ticket-ct-open-01",
+      "tenant_id": "tenant-contoso-demo",
+      "customer_id": "customer-ct-01",
+      "order_id": "order-ct-2001",
+      "status": "in_progress",
+      "subject": "Demo router setup question",
+      "description": "The fictional router setup page cannot be reached.",
+      "priority": "normal",
+      "assignee_id": "user-ct-agent-01",
+      "created_at": "2026-01-15T07:00:00Z",
+      "closed_at": null,
+      "source": "synthetic"
+    }
+  ],
+  "comments": [
+    {
+      "id": "comment-nw-closed-01",
+      "tenant_id": "tenant-northwind-demo",
+      "ticket_id": "ticket-nw-closed-01",
+      "author_user_id": "user-nw-agent-01",
+      "visibility": "public",
+      "body": "The synthetic troubleshooting steps were completed successfully.",
+      "created_at": "2026-01-14T02:30:00Z",
+      "source": "synthetic"
+    },
+    {
+      "id": "comment-ct-open-01",
+      "tenant_id": "tenant-contoso-demo",
+      "ticket_id": "ticket-ct-open-01",
+      "author_user_id": "user-ct-agent-01",
+      "visibility": "internal",
+      "body": "Demo-only note: verify the fictional router status before replying.",
+      "created_at": "2026-01-15T08:00:00Z",
+      "source": "synthetic"
+    }
+  ]
+}

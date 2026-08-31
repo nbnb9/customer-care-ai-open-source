@@ -1,0 +1,105 @@
+[
+  {
+    "id": "rag-holdout-001-nw-agent-warranty",
+    "principal": {
+      "user_id": "user-nw-agent-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "agent",
+      "verification_level": "demo_verified"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "坐席保修指引",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-internal-return-path",
+      "northwind-agent-warranty-guide",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "expected_document_key": "northwind-agent-warranty-guide",
+      "expected_document_version": "1.0.0",
+      "forbidden_document_keys": [
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "required_answer_terms": ["365 天"],
+      "should_handoff": false
+    },
+    "category": "agent-policy",
+    "tags": ["agent", "holdout", "citation"]
+  },
+  {
+    "id": "rag-holdout-002-contoso-customer-return",
+    "principal": {
+      "user_id": "user-ct-customer-01",
+      "tenant_id": "tenant-contoso-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-ct-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-east",
+      "language": "zh-CN"
+    },
+    "question": "Contoso 退款政策",
+    "allowed_document_keys": ["contoso-public-return-policy"],
+    "expected": {
+      "expected_document_key": "contoso-public-return-policy",
+      "expected_document_version": "1.0.0",
+      "forbidden_document_keys": [
+        "northwind-public-return-policy",
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-public-warranty-policy",
+        "northwind-expired-return-policy",
+        "northwind-untrusted-return-note"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "required_answer_terms": ["14 天"],
+      "should_handoff": false
+    },
+    "category": "tenant-isolation",
+    "tags": ["customer", "holdout", "tenant"]
+  },
+  {
+    "id": "rag-holdout-003-nw-customer-no-evidence",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "不存在的演练知识问题是什么？",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "forbidden_answer_terms": ["30 天", "90 天", "365 天"],
+      "should_handoff": true
+    },
+    "category": "no-evidence",
+    "tags": ["customer", "holdout", "handoff"]
+  }
+]

@@ -1,0 +1,283 @@
+[
+  {
+    "id": "rag-001-nw-customer-return",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "客户退款政策",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "expected_document_key": "northwind-public-return-policy",
+      "expected_document_version": "2.0.0",
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "required_answer_terms": ["30 天"],
+      "should_handoff": false
+    },
+    "category": "public-policy",
+    "tags": ["customer", "retrieval", "citation"]
+  },
+  {
+    "id": "rag-002-nw-customer-internal-denied",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "内部退款路径",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "forbidden_answer_terms": ["审核编号"],
+      "should_handoff": true
+    },
+    "category": "acl",
+    "tags": ["customer", "internal", "handoff"]
+  },
+  {
+    "id": "rag-003-nw-agent-internal-allowed",
+    "principal": {
+      "user_id": "user-nw-agent-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "agent",
+      "verification_level": "demo_verified"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "内部退款路径",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-internal-return-path",
+      "northwind-agent-warranty-guide",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "expected_document_key": "northwind-internal-return-path",
+      "expected_document_version": "1.0.0",
+      "forbidden_document_keys": [
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "required_answer_terms": ["审核编号"],
+      "should_handoff": false
+    },
+    "category": "acl",
+    "tags": ["agent", "internal", "citation"]
+  },
+  {
+    "id": "rag-004-nw-customer-expired-policy",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "过期退款政策",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "forbidden_answer_terms": ["90 天"],
+      "should_handoff": true
+    },
+    "category": "lifecycle",
+    "tags": ["customer", "expired", "handoff"]
+  },
+  {
+    "id": "rag-005-nw-customer-cross-tenant",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "Contoso 退款政策",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "forbidden_answer_terms": ["14 天", "Contoso"],
+      "should_handoff": true
+    },
+    "category": "tenant-isolation",
+    "tags": ["customer", "tenant", "handoff"]
+  },
+  {
+    "id": "rag-006-nw-customer-untrusted-evidence",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "不可信退款资料",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "forbidden_answer_terms": ["365 天"],
+      "should_handoff": true
+    },
+    "category": "untrusted-content",
+    "tags": ["customer", "untrusted", "handoff"]
+  },
+  {
+    "id": "rag-007-nw-customer-warranty",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "客户保修政策",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "expected_document_key": "northwind-public-warranty-policy",
+      "expected_document_version": "1.0.0",
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "required_answer_terms": ["365 天"],
+      "should_handoff": false
+    },
+    "category": "public-policy",
+    "tags": ["customer", "retrieval", "citation"]
+  },
+  {
+    "id": "rag-qa-current-return-policy-v2",
+    "principal": {
+      "user_id": "user-nw-customer-01",
+      "tenant_id": "tenant-northwind-demo",
+      "role": "customer",
+      "verification_level": "demo_verified",
+      "customer_id": "customer-nw-01"
+    },
+    "scope": {
+      "product": "demo-support",
+      "region": "cn-north",
+      "language": "zh-CN"
+    },
+    "question": "当前客户退款政策",
+    "allowed_document_keys": [
+      "northwind-public-return-policy",
+      "northwind-public-warranty-policy",
+      "northwind-untrusted-return-note"
+    ],
+    "expected": {
+      "expected_document_key": "northwind-public-return-policy",
+      "expected_document_version": "2.0.0",
+      "forbidden_document_keys": [
+        "northwind-internal-return-path",
+        "northwind-agent-warranty-guide",
+        "northwind-expired-return-policy",
+        "contoso-public-return-policy"
+      ],
+      "expired_document_keys": ["northwind-expired-return-policy"],
+      "required_answer_terms": ["30 天"],
+      "forbidden_answer_terms": ["45 天"],
+      "should_handoff": false
+    },
+    "category": "qa-knowledge-repair",
+    "rationale": "当前公开政策必须引用 2.0.0，而不是已过期的 45 天历史版本。",
+    "tags": ["qa-regression", "knowledge", "current-version"]
+  }
+]

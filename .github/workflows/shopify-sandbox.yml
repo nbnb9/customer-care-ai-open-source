@@ -1,0 +1,110 @@
+name: Shopify Sandbox Read Contract
+
+on:
+  workflow_dispatch:
+    inputs:
+      tenant_id:
+        description: Synthetic internal tenant binding to verify
+        required: true
+        type: string
+      customer_id:
+        description: Synthetic internal customer binding to verify
+        required: true
+        type: string
+      order_id:
+        description: Synthetic internal order binding to verify
+        required: true
+        type: string
+      order_number:
+        description: Dev Store generated order name without customer PII
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shopify-sandbox-read-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  shopify-sandbox-read:
+    name: shopify-sandbox-read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/api
+    env:
+      APP_ENV: test
+      CORS_ALLOWED_ORIGINS: http://127.0.0.1:3100
+      CUSTOMER_TOOLS_PROVIDER: shopify_sandbox
+      DATABASE_URL: postgresql+psycopg://unused:unused@127.0.0.1:5432/unused
+      LLM_PROVIDER: fake
+      SHOPIFY_API_VERSION: 2026-07
+      SHOPIFY_EXTERNAL_WRITES_ENABLED: "false"
+      SMOKE_TENANT_ID: ${{ inputs.tenant_id }}
+      SMOKE_CUSTOMER_ID: ${{ inputs.customer_id }}
+      SMOKE_ORDER_ID: ${{ inputs.order_id }}
+      SMOKE_ORDER_NUMBER: ${{ inputs.order_number }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.5"
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+
+      - name: Install locked backend dependencies
+        run: uv sync --frozen --all-groups
+
+      - name: Materialize private sandbox files
+        shell: python {0}
+        env:
+          SHOPIFY_CLIENT_ID_FILE: ${{ runner.temp }}/shopify_client_id
+          SHOPIFY_CLIENT_SECRET_FILE: ${{ runner.temp }}/shopify_client_secret
+          SHOPIFY_SANDBOX_BINDINGS_FILE: ${{ runner.temp }}/shopify_bindings.json
+          SHOPIFY_CLIENT_ID_VALUE: ${{ secrets.SHOPIFY_SANDBOX_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET_VALUE: ${{ secrets.SHOPIFY_SANDBOX_CLIENT_SECRET }}
+          SHOPIFY_BINDINGS_VALUE: ${{ secrets.SHOPIFY_SANDBOX_BINDINGS_JSON }}
+        run: |
+          import os
+          from pathlib import Path
+
+          values = {
+              Path(os.environ["SHOPIFY_CLIENT_ID_FILE"]): os.environ[
+                  "SHOPIFY_CLIENT_ID_VALUE"
+              ],
+              Path(os.environ["SHOPIFY_CLIENT_SECRET_FILE"]): os.environ[
+                  "SHOPIFY_CLIENT_SECRET_VALUE"
+              ],
+              Path(os.environ["SHOPIFY_SANDBOX_BINDINGS_FILE"]): os.environ[
+                  "SHOPIFY_BINDINGS_VALUE"
+              ],
+          }
+          if any(not value for value in values.values()):
+              raise SystemExit("Required Shopify sandbox secrets are missing")
+          for path, value in values.items():
+              path.write_text(value, encoding="utf-8")
+              path.chmod(0o600)
+
+      - name: Verify real read-only contract
+        env:
+          SHOPIFY_CLIENT_ID_FILE: ${{ runner.temp }}/shopify_client_id
+          SHOPIFY_CLIENT_SECRET_FILE: ${{ runner.temp }}/shopify_client_secret
+          SHOPIFY_SANDBOX_BINDINGS_FILE: ${{ runner.temp }}/shopify_bindings.json
+        run: >-
+          uv run shopify_sandbox_smoke
+          --tenant-id "$SMOKE_TENANT_ID"
+          --customer-id "$SMOKE_CUSTOMER_ID"
+          --order-id "$SMOKE_ORDER_ID"
+          --order-number "$SMOKE_ORDER_NUMBER"

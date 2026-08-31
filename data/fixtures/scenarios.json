@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "fixture_version": "1.0.0",
+  "fixture_id": "customer-care-scenarios-v1",
+  "source": "synthetic",
+  "as_of": "2026-01-15T12:00:00Z",
+  "execution_policy": {
+    "world_fixture_id": "customer-care-two-tenant-world-v1",
+    "reset_world_before_each_scenario": true,
+    "scenario_order_independent": true,
+    "idempotency_scope": [
+      "tenant_id",
+      "principal_id",
+      "operation",
+      "idempotency_key"
+    ],
+    "principal_source": "server_identity_context",
+    "operation_source": "http_method_and_route_template",
+    "request_fingerprint_policy": {
+      "required": true,
+      "same_key_same_fingerprint": "replay_original_result",
+      "same_key_different_fingerprint": "reject_with_conflict"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "scenario-normal-ticket-flow",
+      "kind": "normal_ticket_flow",
+      "description": "A Northwind customer submits a valid request and exactly one ticket is created.",
+      "actor_user_id": "user-nw-customer-01",
+      "request": {
+        "method": "POST",
+        "path": "/v1/tickets",
+        "idempotency_key": "demo-ticket-create-normal-001",
+        "body": {
+          "order_id": "order-nw-1001",
+          "subject": "Synthetic shipment status request",
+          "description": "Please check the fictional shipment status."
+        }
+      },
+      "expected": {
+        "outcome": "created",
+        "http_status": 201,
+        "ticket_count_delta": 1,
+        "tenant_id": "tenant-northwind-demo",
+        "initial_status": "new",
+        "audit_event_required": true
+      },
+      "source": "synthetic"
+    },
+    {
+      "id": "scenario-missing-subject",
+      "kind": "missing_required_field",
+      "description": "A ticket request without subject must fail validation without creating data.",
+      "actor_user_id": "user-nw-customer-01",
+      "request": {
+        "method": "POST",
+        "path": "/v1/tickets",
+        "idempotency_key": "demo-ticket-create-missing-001",
+        "body": {
+          "order_id": "order-nw-1001",
+          "description": "This synthetic request intentionally omits subject."
+        }
+      },
+      "expected": {
+        "outcome": "validation_error",
+        "http_status": 422,
+        "error_code": "VALIDATION_ERROR",
+        "ticket_count_delta": 0,
+        "state_unchanged": true
+      },
+      "source": "synthetic"
+    },
+    {
+      "id": "scenario-cross-tenant-ticket-read",
+      "kind": "cross_tenant_access",
+      "description": "A Northwind agent attempts to read a Contoso ticket.",
+      "actor_user_id": "user-nw-agent-01",
+      "request": {
+        "method": "GET",
+        "path": "/v1/tickets/ticket-ct-open-01",
+        "target_ticket_id": "ticket-ct-open-01"
+      },
+      "expected": {
+        "outcome": "access_denied",
+        "http_status": 404,
+        "error_code": "RESOURCE_NOT_FOUND",
+        "must_not_expose_record": true,
+        "write_count_delta": 0,
+        "state_unchanged": true,
+        "security_audit_event_required": true
+      },
+      "source": "synthetic"
+    },
+    {
+      "id": "scenario-duplicate-ticket-submission",
+      "kind": "duplicate_submission",
+      "description": "The same create request is sent twice with the same idempotency key.",
+      "actor_user_id": "user-ct-customer-02",
+      "attempts": [
+        {
+          "method": "POST",
+          "path": "/v1/tickets",
+          "idempotency_key": "demo-ticket-create-duplicate-001",
+          "body": {
+            "order_id": "order-ct-2002",
+            "subject": "Synthetic duplicate shipment request",
+            "description": "This exact request is intentionally sent twice."
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/tickets",
+          "idempotency_key": "demo-ticket-create-duplicate-001",
+          "body": {
+            "order_id": "order-ct-2002",
+            "subject": "Synthetic duplicate shipment request",
+            "description": "This exact request is intentionally sent twice."
+          }
+        }
+      ],
+      "expected": {
+        "outcome": "idempotent_replay",
+        "ticket_count_delta": 1,
+        "unique_ticket_ids_returned": 1,
+        "replayed_response_matches_original": true,
+        "duplicate_side_effects": 0,
+        "audit_event_required": true
+      },
+      "source": "synthetic"
+    },
+    {
+      "id": "scenario-closed-ticket-reopen-rejected",
+      "kind": "closed_ticket_reopen",
+      "description": "A closed ticket is sent directly to reopened, which this P0 test expects the state machine to reject.",
+      "actor_user_id": "user-nw-agent-01",
+      "request": {
+        "method": "PATCH",
+        "path": "/v1/tickets/ticket-nw-closed-01",
+        "target_ticket_id": "ticket-nw-closed-01",
+        "body": {
+          "status": "reopened"
+        }
+      },
+      "expected": {
+        "outcome": "invalid_state_transition",
+        "http_status": 409,
+        "error_code": "INVALID_STATE_TRANSITION",
+        "ticket_status_after": "closed",
+        "audit_event_required": true
+      },
+      "source": "synthetic"
+    }
+  ]
+}

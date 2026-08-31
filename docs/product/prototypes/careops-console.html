@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>CareOps 产品化方向原型</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --cc-color-canvas: #f6f8fb;
+        --cc-color-surface: #ffffff;
+        --cc-color-surface-subtle: #f1f5f9;
+        --cc-color-border: #cbd5e1;
+        --cc-color-border-strong: #94a3b8;
+        --cc-color-text: #0f172a;
+        --cc-color-text-muted: #475569;
+        --cc-color-text-subtle: #64748b;
+        --cc-color-text-inverse: #ffffff;
+        --cc-color-primary: #1d4ed8;
+        --cc-color-primary-hover: #1e40af;
+        --cc-color-primary-soft: #dbeafe;
+        --cc-color-focus: #2563eb;
+        --cc-color-success: #047857;
+        --cc-color-success-soft: #d1fae5;
+        --cc-color-warning: #92400e;
+        --cc-color-warning-soft: #fef3c7;
+        --cc-color-danger: #b91c1c;
+        --cc-color-danger-soft: #fee2e2;
+        --cc-color-info: #0369a1;
+        --cc-color-info-soft: #e0f2fe;
+        --cc-radius-sm: 6px;
+        --cc-radius-md: 10px;
+        --cc-radius-lg: 14px;
+        --cc-shadow-panel: 0 1px 2px rgb(15 23 42 / 0.05),
+          0 8px 24px rgb(15 23 42 / 0.06);
+        --cc-font-sans: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei",
+          system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: var(--cc-color-canvas);
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--cc-color-text);
+        background: var(--cc-color-canvas);
+        font-family: var(--cc-font-sans);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        color: inherit;
+        font: inherit;
+      }
+
+      button,
+      select {
+        min-height: 40px;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible,
+      a:focus-visible {
+        outline: 3px solid var(--cc-color-focus);
+        outline-offset: 2px;
+      }
+
+      .prototype-banner {
+        display: flex;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 7px 16px;
+        border-bottom: 1px solid #bae6fd;
+        color: #075985;
+        background: #f0f9ff;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .prototype-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #0284c7;
+      }
+
+      .shell {
+        display: grid;
+        min-height: calc(100vh - 42px);
+        grid-template-columns: 232px minmax(0, 1fr);
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        padding: 22px 16px 16px;
+        border-right: 1px solid #1e293b;
+        color: #e2e8f0;
+        background: #0f172a;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 0 8px 22px;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border-radius: 11px;
+        color: white;
+        background: linear-gradient(145deg, #2563eb, #0f766e);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .brand-title {
+        color: #f8fafc;
+        font-size: 15px;
+        font-weight: 750;
+      }
+
+      .brand-subtitle {
+        color: #94a3b8;
+        font-size: 11px;
+      }
+
+      .nav-set {
+        display: none;
+      }
+
+      body[data-active-view="agent"] .nav-set[data-nav="agent"],
+      body[data-active-view="supervisor"] .nav-set[data-nav="supervisor"] {
+        display: block;
+      }
+
+      body[data-active-view="customer"] .shell {
+        grid-template-columns: 1fr;
+      }
+
+      body[data-active-view="customer"] .sidebar,
+      body[data-active-view="customer"] .search,
+      body[data-active-view="customer"] .tenant-chip {
+        display: none;
+      }
+
+      body[data-active-view="customer"] .role-switcher {
+        margin-right: auto;
+      }
+
+      .side-label {
+        margin: 8px 10px 6px;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .side-nav {
+        display: grid;
+        gap: 4px;
+      }
+
+      .side-nav button {
+        display: flex;
+        width: 100%;
+        min-height: 42px;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border: 0;
+        border-radius: 8px;
+        color: #cbd5e1;
+        background: transparent;
+        text-align: left;
+      }
+
+      .side-nav button:hover,
+      .side-nav button[aria-current="page"] {
+        color: white;
+        background: #1e293b;
+      }
+
+      .nav-symbol {
+        display: grid;
+        width: 24px;
+        height: 24px;
+        place-items: center;
+        border: 1px solid #475569;
+        border-radius: 7px;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .nav-count {
+        margin-left: auto;
+        padding: 1px 7px;
+        border-radius: 999px;
+        color: #bfdbfe;
+        background: #1e3a8a;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .sidebar-spacer {
+        flex: 1;
+      }
+
+      .sandbox-card {
+        padding: 12px;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        color: #cbd5e1;
+        background: #111c2f;
+        font-size: 11px;
+      }
+
+      .sandbox-card strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #f8fafc;
+      }
+
+      .app {
+        min-width: 0;
+      }
+
+      .topbar {
+        display: flex;
+        min-height: 64px;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 22px;
+        border-bottom: 1px solid var(--cc-color-border);
+        background: rgb(255 255 255 / 0.94);
+        backdrop-filter: blur(12px);
+      }
+
+      .role-switcher {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 10px;
+        background: var(--cc-color-surface-subtle);
+      }
+
+      .role-switcher button {
+        min-height: 34px;
+        padding: 6px 11px;
+        border: 0;
+        border-radius: 7px;
+        color: var(--cc-color-text-muted);
+        background: transparent;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .role-switcher button[aria-pressed="true"] {
+        color: var(--cc-color-text);
+        background: white;
+        box-shadow: 0 1px 3px rgb(15 23 42 / 0.12);
+      }
+
+      .search {
+        position: relative;
+        width: min(420px, 36vw);
+        margin-left: auto;
+      }
+
+      .search input {
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 12px 8px 36px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 9px;
+        background: white;
+      }
+
+      .search::before {
+        position: absolute;
+        top: 9px;
+        left: 13px;
+        color: var(--cc-color-text-subtle);
+        content: "⌕";
+        font-size: 18px;
+      }
+
+      .tenant-chip,
+      .avatar {
+        flex: 0 0 auto;
+      }
+
+      .tenant-chip {
+        padding: 6px 10px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 999px;
+        color: var(--cc-color-text-muted);
+        background: white;
+        font-size: 12px;
+      }
+
+      .avatar {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border-radius: 999px;
+        color: white;
+        background: #334155;
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.is-active {
+        display: block;
+      }
+
+      .page-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 22px 24px 16px;
+      }
+
+      .eyebrow {
+        margin: 0 0 3px;
+        color: var(--cc-color-primary);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 4px;
+        font-size: 24px;
+        line-height: 1.3;
+      }
+
+      h2 {
+        margin-bottom: 8px;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      h3 {
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .subtle {
+        margin-bottom: 0;
+        color: var(--cc-color-text-muted);
+      }
+
+      .head-actions,
+      .inline-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .button {
+        display: inline-flex;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 8px 13px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-weight: 700;
+      }
+
+      .button-primary {
+        color: white;
+        background: var(--cc-color-primary);
+      }
+
+      .button-primary:hover {
+        background: var(--cc-color-primary-hover);
+      }
+
+      .button-secondary {
+        border-color: var(--cc-color-border);
+        color: var(--cc-color-text);
+        background: white;
+      }
+
+      .button-quiet {
+        color: var(--cc-color-primary);
+        background: var(--cc-color-primary-soft);
+      }
+
+      .button-danger {
+        border-color: #fecaca;
+        color: var(--cc-color-danger);
+        background: #fff;
+      }
+
+      .workspace {
+        display: grid;
+        min-height: calc(100vh - 188px);
+        grid-template-columns: 292px minmax(520px, 1fr) 344px;
+        gap: 12px;
+        padding: 0 16px 18px;
+      }
+
+      .panel {
+        min-width: 0;
+        border: 1px solid var(--cc-color-border);
+        border-radius: var(--cc-radius-lg);
+        background: var(--cc-color-surface);
+        box-shadow: var(--cc-shadow-panel);
+      }
+
+      .panel-head {
+        display: flex;
+        min-height: 58px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--cc-color-border);
+      }
+
+      .panel-head h2,
+      .panel-head p {
+        margin: 0;
+      }
+
+      .queue-filters {
+        display: flex;
+        gap: 6px;
+        padding: 10px 12px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--cc-color-border);
+      }
+
+      .filter-chip {
+        flex: 0 0 auto;
+        min-height: 30px;
+        padding: 4px 9px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 999px;
+        color: var(--cc-color-text-muted);
+        background: white;
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .filter-chip.is-active {
+        border-color: #93c5fd;
+        color: #1e3a8a;
+        background: #eff6ff;
+      }
+
+      .queue-list {
+        display: grid;
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .queue-item {
+        width: 100%;
+        min-height: 96px;
+        padding: 10px 11px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        background: transparent;
+        text-align: left;
+      }
+
+      .queue-item:hover {
+        background: var(--cc-color-surface-subtle);
+      }
+
+      .queue-item[aria-pressed="true"] {
+        border-color: #93c5fd;
+        background: #eff6ff;
+        box-shadow: inset 3px 0 var(--cc-color-primary);
+      }
+
+      .queue-top,
+      .queue-meta,
+      .meta-row,
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .queue-top {
+        justify-content: space-between;
+      }
+
+      .queue-name {
+        overflow: hidden;
+        font-size: 13px;
+        font-weight: 750;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .queue-preview {
+        display: -webkit-box;
+        margin: 5px 0 7px;
+        overflow: hidden;
+        color: var(--cc-color-text-muted);
+        font-size: 12px;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+
+      .queue-meta {
+        color: var(--cc-color-text-muted);
+        font-size: 10px;
+      }
+
+      .badge {
+        display: inline-flex;
+        min-height: 22px;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+
+      .badge-danger {
+        color: var(--cc-color-danger);
+        background: var(--cc-color-danger-soft);
+      }
+
+      .badge-warning {
+        color: var(--cc-color-warning);
+        background: var(--cc-color-warning-soft);
+      }
+
+      .badge-success {
+        color: var(--cc-color-success);
+        background: var(--cc-color-success-soft);
+      }
+
+      .badge-info {
+        color: var(--cc-color-info);
+        background: var(--cc-color-info-soft);
+      }
+
+      .conversation-panel {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        overflow: hidden;
+      }
+
+      .conversation-heading {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .conversation-heading strong {
+        display: block;
+      }
+
+      .conversation-heading span {
+        display: block;
+        color: var(--cc-color-text-subtle);
+        font-size: 11px;
+      }
+
+      .channel-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 9px;
+        color: #1e40af;
+        background: #dbeafe;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .timeline {
+        padding: 18px 20px 24px;
+        overflow: auto;
+        background: #f8fafc;
+      }
+
+      .date-divider {
+        margin: 2px 0 14px;
+        color: var(--cc-color-text-subtle);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .message {
+        max-width: 78%;
+        margin-bottom: 13px;
+        padding: 11px 13px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 12px 12px 12px 3px;
+        background: white;
+      }
+
+      .message.agent {
+        margin-left: auto;
+        border-color: #bfdbfe;
+        border-radius: 12px 12px 3px 12px;
+        background: #eff6ff;
+      }
+
+      .message-meta {
+        margin-bottom: 5px;
+        color: var(--cc-color-text-muted);
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .system-event {
+        margin: 12px 0;
+        padding: 9px 11px;
+        border-left: 3px solid #0f766e;
+        color: #115e59;
+        background: #f0fdfa;
+        font-size: 11px;
+      }
+
+      .suggestion {
+        margin: 16px 0;
+        padding: 14px;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 5px 18px rgb(30 64 175 / 0.07);
+      }
+
+      .suggestion-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .suggestion p {
+        margin-bottom: 9px;
+      }
+
+      .evidence {
+        margin-top: 10px;
+        padding: 10px 11px;
+        border-radius: 8px;
+        background: var(--cc-color-surface-subtle);
+      }
+
+      .evidence details {
+        margin-top: 8px;
+      }
+
+      .evidence summary {
+        color: var(--cc-color-primary);
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .composer {
+        padding: 12px 14px 14px;
+        border-top: 1px solid var(--cc-color-border);
+        background: white;
+      }
+
+      .composer-tabs {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 8px;
+        color: var(--cc-color-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .composer-tabs .active {
+        color: var(--cc-color-primary);
+      }
+
+      .composer textarea {
+        width: 100%;
+        min-height: 82px;
+        resize: vertical;
+        padding: 10px 11px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 9px;
+      }
+
+      .composer-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 8px;
+      }
+
+      .context-panel {
+        overflow: auto;
+      }
+
+      .context-section {
+        padding: 14px;
+        border-bottom: 1px solid var(--cc-color-border);
+      }
+
+      .context-section:last-child {
+        border-bottom: 0;
+      }
+
+      .section-title {
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .section-title h3 {
+        margin: 0;
+      }
+
+      .definition-list {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 7px 10px;
+        margin: 0;
+        font-size: 12px;
+      }
+
+      .definition-list dt {
+        color: var(--cc-color-text-subtle);
+      }
+
+      .definition-list dd {
+        min-width: 0;
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .order-card {
+        padding: 11px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 9px;
+        background: #f8fafc;
+      }
+
+      .order-card + .order-card {
+        margin-top: 8px;
+      }
+
+      .order-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 5px;
+        font-weight: 750;
+      }
+
+      .order-card p {
+        margin-bottom: 3px;
+        color: var(--cc-color-text-muted);
+        font-size: 11px;
+      }
+
+      .action-card {
+        padding: 12px;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        background: #fffbeb;
+      }
+
+      .action-card p {
+        margin-bottom: 10px;
+        color: #78350f;
+        font-size: 11px;
+      }
+
+      .stepper {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 8px;
+        color: var(--cc-color-text-subtle);
+        font-size: 11px;
+      }
+
+      .step-marker {
+        display: grid;
+        width: 22px;
+        height: 22px;
+        place-items: center;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 999px;
+        background: white;
+        font-size: 9px;
+        font-weight: 800;
+      }
+
+      .step.done {
+        color: var(--cc-color-success);
+      }
+
+      .step.done .step-marker {
+        border-color: #6ee7b7;
+        color: var(--cc-color-success);
+        background: var(--cc-color-success-soft);
+      }
+
+      .step.current {
+        color: var(--cc-color-text);
+        font-weight: 700;
+      }
+
+      .step.current .step-marker {
+        border-color: #f59e0b;
+        color: var(--cc-color-warning);
+        background: var(--cc-color-warning-soft);
+      }
+
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 20;
+        display: none;
+        max-width: 360px;
+        padding: 12px 14px;
+        border: 1px solid #86efac;
+        border-radius: 10px;
+        color: #14532d;
+        background: #f0fdf4;
+        box-shadow: var(--cc-shadow-panel);
+        font-weight: 650;
+      }
+
+      .toast.is-visible {
+        display: block;
+      }
+
+      .customer-canvas {
+        min-height: calc(100vh - 106px);
+        padding: 34px 24px 48px;
+        background:
+          radial-gradient(circle at 12% 8%, rgb(37 99 235 / 0.08), transparent 32%),
+          radial-gradient(circle at 92% 86%, rgb(15 118 110 / 0.08), transparent 30%),
+          var(--cc-color-canvas);
+      }
+
+      .customer-wrap {
+        display: grid;
+        max-width: 1040px;
+        margin: 0 auto;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 20px;
+      }
+
+      .customer-hero {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 4px;
+      }
+
+      .customer-hero h1 {
+        font-size: 30px;
+      }
+
+      .availability {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 10px;
+        border: 1px solid #a7f3d0;
+        border-radius: 999px;
+        color: #065f46;
+        background: #ecfdf5;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .availability::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #10b981;
+        content: "";
+      }
+
+      .customer-chat {
+        overflow: hidden;
+      }
+
+      .customer-chat .timeline {
+        min-height: 430px;
+      }
+
+      .service-card {
+        padding: 18px;
+      }
+
+      .progress-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin: 12px 0 18px;
+      }
+
+      .progress-step {
+        position: relative;
+        padding-top: 10px;
+        border-top: 3px solid var(--cc-color-border);
+        color: var(--cc-color-text-subtle);
+        font-size: 10px;
+      }
+
+      .progress-step.done {
+        border-color: var(--cc-color-success);
+        color: var(--cc-color-success);
+      }
+
+      .progress-step.current {
+        border-color: var(--cc-color-primary);
+        color: var(--cc-color-primary);
+        font-weight: 750;
+      }
+
+      .customer-order {
+        margin: 12px 0;
+        padding: 13px;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        background: #eff6ff;
+      }
+
+      .customer-order strong {
+        display: block;
+      }
+
+      .customer-order span {
+        color: var(--cc-color-text-muted);
+        font-size: 12px;
+      }
+
+      .ops-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 14px;
+        padding: 0 24px 28px;
+      }
+
+      .metric-card {
+        grid-column: span 3;
+        padding: 15px;
+      }
+
+      .metric-label {
+        color: var(--cc-color-text-muted);
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .metric-value {
+        margin: 6px 0 2px;
+        font-size: 25px;
+        font-weight: 780;
+      }
+
+      .metric-change {
+        color: var(--cc-color-success);
+        font-size: 11px;
+      }
+
+      .ops-main {
+        grid-column: span 8;
+        padding-bottom: 4px;
+      }
+
+      .ops-side {
+        grid-column: span 4;
+      }
+
+      .queue-health {
+        padding: 14px;
+      }
+
+      .health-row {
+        display: grid;
+        grid-template-columns: minmax(120px, 1fr) 2fr 64px;
+        gap: 12px;
+        align-items: center;
+        padding: 11px 0;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 12px;
+      }
+
+      .health-row:last-child {
+        border-bottom: 0;
+      }
+
+      .bar-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8f0;
+      }
+
+      .bar-value {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--cc-color-primary);
+      }
+
+      .bar-value.warning {
+        background: #d97706;
+      }
+
+      .bar-value.danger {
+        background: #dc2626;
+      }
+
+      .risk-list {
+        display: grid;
+        gap: 9px;
+        padding: 12px;
+      }
+
+      .risk-item {
+        padding: 11px;
+        border: 1px solid var(--cc-color-border);
+        border-radius: 9px;
+        background: white;
+      }
+
+      .risk-item strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 12px;
+      }
+
+      .risk-item p {
+        margin-bottom: 8px;
+        color: var(--cc-color-text-muted);
+        font-size: 11px;
+      }
+
+      .prototype-note {
+        padding: 13px 24px 0;
+        color: var(--cc-color-text-muted);
+        font-size: 11px;
+      }
+
+      @media (max-width: 1240px) {
+        .workspace {
+          grid-template-columns: 260px minmax(500px, 1fr);
+        }
+
+        .context-panel {
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .context-section {
+          border-right: 1px solid var(--cc-color-border);
+          border-bottom: 0;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .topbar {
+          flex-wrap: wrap;
+        }
+
+        .search {
+          order: 3;
+          width: 100%;
+          margin-left: 0;
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .queue-panel,
+        .conversation-panel,
+        .context-panel {
+          grid-column: auto;
+        }
+
+        .context-panel {
+          display: block;
+        }
+
+        .context-section {
+          border-right: 0;
+          border-bottom: 1px solid var(--cc-color-border);
+        }
+
+        .customer-wrap {
+          grid-template-columns: 1fr;
+        }
+
+        .customer-hero {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .metric-card {
+          grid-column: span 6;
+        }
+
+        .ops-main,
+        .ops-side {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .prototype-banner {
+          align-items: flex-start;
+          text-align: left;
+        }
+
+        .topbar {
+          padding: 10px 12px;
+        }
+
+        .role-switcher {
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        .role-switcher button {
+          flex: 1 0 auto;
+        }
+
+        .tenant-chip {
+          display: none;
+        }
+
+        .page-head {
+          padding: 18px 14px 13px;
+          flex-direction: column;
+        }
+
+        .workspace,
+        .ops-grid {
+          padding-right: 10px;
+          padding-left: 10px;
+        }
+
+        .message {
+          max-width: 94%;
+        }
+
+        .context-panel {
+          max-height: none;
+        }
+
+        .customer-canvas {
+          padding: 24px 12px 36px;
+        }
+
+        .metric-card {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body data-active-view="agent">
+    <div class="prototype-banner">
+      <span class="prototype-dot" aria-hidden="true"></span>
+      步骤 41.5 可点击原型 · 仅验证信息架构和交互语义，不连接真实 API、不执行售后动作
+    </div>
+
+    <div class="shell">
+      <aside class="sidebar" aria-label="原型导航">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">NC</div>
+          <div>
+            <div class="brand-title">Northstar CareOps</div>
+            <div class="brand-subtitle">受控 AI 售后协同</div>
+          </div>
+        </div>
+
+        <div class="nav-set" data-nav="agent">
+          <div class="side-label">坐席工作区</div>
+          <nav class="side-nav">
+            <button type="button" aria-current="page">
+              <span class="nav-symbol" aria-hidden="true">IN</span>
+              优先队列
+              <span class="nav-count">7</span>
+            </button>
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">TK</span>
+              待办任务
+              <span class="nav-count">4</span>
+            </button>
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">CU</span>
+              客户与设备
+            </button>
+          </nav>
+
+          <div class="side-label">支持工具</div>
+          <nav class="side-nav">
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">KB</span>
+              政策与知识
+            </button>
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">HI</span>
+              我的处理历史
+            </button>
+          </nav>
+        </div>
+
+        <div class="nav-set" data-nav="supervisor">
+          <div class="side-label">运营工作区</div>
+          <nav class="side-nav">
+            <button type="button" aria-current="page">
+              <span class="nav-symbol" aria-hidden="true">OV</span>
+              运营概览
+            </button>
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">QU</span>
+              队列与容量
+              <span class="nav-count">5</span>
+            </button>
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">QA</span>
+              质量与知识
+            </button>
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">AI</span>
+              AI 动作治理
+            </button>
+            <button type="button">
+              <span class="nav-symbol" aria-hidden="true">CO</span>
+              集成事件
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar-spacer"></div>
+        <div class="sandbox-card">
+          <strong>Shopify Dev Store</strong>
+          只读契约候选 · 外部写入关闭
+        </div>
+      </aside>
+
+      <div class="app">
+        <header class="topbar">
+          <div class="role-switcher" aria-label="原型视图切换">
+            <button type="button" data-view-button="agent" aria-pressed="true">坐席协同台</button>
+            <button type="button" data-view-button="customer" aria-pressed="false">客户入口</button>
+            <button type="button" data-view-button="supervisor" aria-pressed="false">主管运营台</button>
+          </div>
+          <label class="search">
+            <span hidden>搜索当前授权范围</span>
+            <input type="search" placeholder="搜索客户、订单、会话（仅当前授权范围）" />
+          </label>
+          <div class="tenant-chip" id="tenant-chip">Northstar Audio · 沙箱</div>
+          <div class="avatar" id="role-avatar" aria-label="当前用户：林澈，售后坐席">林</div>
+        </header>
+
+        <main>
+          <section class="view is-active" data-view="agent" aria-labelledby="agent-title">
+            <div class="page-head">
+              <div>
+                <p class="eyebrow">Agent workspace</p>
+                <h1 id="agent-title">售后协同台</h1>
+                <p class="subtle">先处理安全与 SLA 风险，再完成有证据、可确认的售后动作。</p>
+              </div>
+              <div class="head-actions">
+                <button class="button button-secondary" type="button">当前容量 4 / 6</button>
+                <button class="button button-primary" type="button">领取下一项</button>
+              </div>
+            </div>
+
+            <div class="workspace">
+              <section class="panel queue-panel" aria-label="优先队列">
+                <div class="panel-head">
+                  <div>
+                    <h2>优先队列</h2>
+                    <p class="subtle">解释排序，不隐藏风险</p>
+                  </div>
+                  <span class="badge badge-warning">7 待处理</span>
+                </div>
+                <div class="queue-filters" aria-label="队列筛选">
+                  <button class="filter-chip is-active" type="button">全部</button>
+                  <button class="filter-chip" type="button">安全 2</button>
+                  <button class="filter-chip" type="button">即将超时 3</button>
+                  <button class="filter-chip" type="button">我的 4</button>
+                </div>
+                <div class="queue-list">
+                  <button class="queue-item" type="button" aria-pressed="false">
+                    <div class="queue-top">
+                      <span class="queue-name">陈女士 · 音箱过热</span>
+                      <span class="badge badge-danger">安全升级</span>
+                    </div>
+                    <div class="queue-preview">设备充电时出现明显发热和焦味，希望立即处理。</div>
+                    <div class="queue-meta"><span>等待 4 分钟</span><span>安全专队</span></div>
+                  </button>
+                  <button class="queue-item" type="button" aria-pressed="true">
+                    <div class="queue-top">
+                      <span class="queue-name">周先生 · 右耳无声</span>
+                      <span class="badge badge-warning">18 分钟超时</span>
+                    </div>
+                    <div class="queue-preview">耳机到货第 16 天，右耳突然没有声音，已完成重置。</div>
+                    <div class="queue-meta"><span>聊天</span><span>保修 / RMA</span><span>高价值客户</span></div>
+                  </button>
+                  <button class="queue-item" type="button" aria-pressed="false">
+                    <div class="queue-top">
+                      <span class="queue-name">王女士 · 配送未更新</span>
+                      <span class="badge badge-info">AI 已收集信息</span>
+                    </div>
+                    <div class="queue-preview">物流状态两天没有更新，希望确认预计到达时间。</div>
+                    <div class="queue-meta"><span>邮件</span><span>订单查询</span><span>等待 11 分钟</span></div>
+                  </button>
+                  <button class="queue-item" type="button" aria-pressed="false">
+                    <div class="queue-top">
+                      <span class="queue-name">赵先生 · 退货政策</span>
+                      <span class="badge badge-success">证据充分</span>
+                    </div>
+                    <div class="queue-preview">想了解拆封后的退货条件，尚未发起申请。</div>
+                    <div class="queue-meta"><span>Web</span><span>政策咨询</span><span>等待 8 分钟</span></div>
+                  </button>
+                </div>
+              </section>
+
+              <section class="panel conversation-panel" aria-label="当前会话与任务">
+                <div class="panel-head">
+                  <div class="conversation-heading">
+                    <div class="channel-icon" aria-hidden="true">CHAT</div>
+                    <div>
+                      <strong>周先生 · 耳机右耳无声</strong>
+                      <span>会话 C-240830-019 · 已验证客户 · 等待 12 分钟</span>
+                    </div>
+                  </div>
+                  <span class="badge badge-warning">保修 / RMA</span>
+                </div>
+
+                <div class="timeline">
+                  <div class="date-divider">今天 13:42</div>
+                  <div class="message">
+                    <div class="message-meta">客户 · Web Chat · 13:42</div>
+                    我的 Aster Buds Pro 是上个月买的，今天右耳突然没声音了。已经按说明重置过，还是不行。
+                  </div>
+                  <div class="system-event">
+                    已验证客户与订单归属。Shopify Dev Store 返回订单已履约；保修政策 v3.2 显示仍在覆盖期。
+                  </div>
+                  <div class="message agent">
+                    <div class="message-meta">林澈 · 客户可见 · 13:44</div>
+                    收到。我已核对到对应订单和保修状态，先确认两个信息：右耳是否有明显破损或进水？
+                  </div>
+                  <div class="message">
+                    <div class="message-meta">客户 · Web Chat · 13:45</div>
+                    没有破损，也没有进水。
+                  </div>
+
+                  <article class="suggestion" aria-label="AI 建议与证据">
+                    <div class="suggestion-top">
+                      <div>
+                        <p class="eyebrow">AI 建议 · 需要坐席确认</p>
+                        <h2>符合保修期内补发草稿条件</h2>
+                      </div>
+                      <span class="badge badge-success">2 项证据已验证</span>
+                    </div>
+                    <p>
+                      订单已履约 16 天，设备仍在 365 天有限保修期内；客户已完成基础排障且无外观损坏陈述。
+                      建议创建“补发申请”草稿，请客户确认收货对象后再提交审批。
+                    </p>
+                    <div class="evidence">
+                      <strong>关键结论与来源</strong>
+                      <p class="subtle">保修资格来自订单事实 +《Aster Buds 有限保修政策》v3.2（华东区，2026-07-01 生效）</p>
+                      <details>
+                        <summary>查看证据与适用范围</summary>
+                        <p>
+                          证据只证明当前版本、受众和范围已验证；坐席仍需核对客户陈述与设备对象。
+                          来源定位：warranty-policy / section-4 / replacement-eligibility。
+                        </p>
+                      </details>
+                    </div>
+                    <div class="inline-actions" style="margin-top: 12px">
+                      <button class="button button-primary" id="create-draft" type="button">创建补发草稿</button>
+                      <button class="button button-secondary" type="button">编辑建议</button>
+                      <button class="button button-danger" type="button">拒绝并说明</button>
+                    </div>
+                  </article>
+                </div>
+
+                <div class="composer">
+                  <div class="composer-tabs">
+                    <span class="active">客户可见回复</span>
+                    <span>内部备注</span>
+                  </div>
+                  <textarea aria-label="客户可见回复">已确认您的耳机仍在保修期内。我可以先创建补发申请草稿，系统会请您确认具体设备和收货信息；确认后还需要售后人员审批，当前不会立即产生补发。</textarea>
+                  <div class="composer-actions">
+                    <span class="subtle">发送前再次确认：这是客户可见内容</span>
+                    <button class="button button-primary" type="button">发送回复</button>
+                  </div>
+                </div>
+              </section>
+
+              <aside class="panel context-panel" aria-label="客户与业务上下文">
+                <section class="context-section">
+                  <div class="section-title">
+                    <h3>客户与验证</h3>
+                    <span class="badge badge-success">已验证</span>
+                  </div>
+                  <dl class="definition-list">
+                    <dt>客户</dt><dd>周先生</dd>
+                    <dt>区域</dt><dd>中国华东</dd>
+                    <dt>服务等级</dt><dd>Plus · 高价值</dd>
+                    <dt>近期联系</dt><dd>90 天内 1 次</dd>
+                  </dl>
+                </section>
+
+                <section class="context-section">
+                  <div class="section-title">
+                    <h3>订单与设备</h3>
+                    <button class="filter-chip" type="button">查看全部</button>
+                  </div>
+                  <div class="order-card">
+                    <div class="order-title">
+                      <span>#NS-10482</span>
+                      <span class="badge badge-success">已履约</span>
+                    </div>
+                    <p>Aster Buds Pro · 午夜蓝 · 数量 1</p>
+                    <p>2026-08-14 下单 · 2026-08-17 签收</p>
+                    <p>Shopify Dev Store · 已完成服务端归属复核</p>
+                  </div>
+                  <div class="order-card">
+                    <div class="order-title">
+                      <span>有限保修</span>
+                      <span class="badge badge-success">有效</span>
+                    </div>
+                    <p>覆盖至 2027-08-16 · 政策 v3.2</p>
+                    <p>序列号尚待客户确认，不从聊天文本自动写入。</p>
+                  </div>
+                </section>
+
+                <section class="context-section">
+                  <div class="section-title">
+                    <h3>受控售后</h3>
+                    <span class="badge badge-warning" id="action-status">尚未创建</span>
+                  </div>
+                  <div class="action-card">
+                    <strong id="action-title">建议：补发申请草稿</strong>
+                    <p id="action-description">当前不会调用外部系统。创建后先请求客户确认，再由有权限人员审批。</p>
+                    <button class="button button-secondary" type="button" style="width: 100%">查看政策判断</button>
+                  </div>
+                  <ol class="stepper" style="margin-top: 13px">
+                    <li class="step current" id="step-draft">
+                      <span class="step-marker">1</span><span>创建并核对草稿</span>
+                    </li>
+                    <li class="step" id="step-confirm">
+                      <span class="step-marker">2</span><span>等待客户确认</span>
+                    </li>
+                    <li class="step">
+                      <span class="step-marker">3</span><span>售后人员审批</span>
+                    </li>
+                    <li class="step">
+                      <span class="step-marker">4</span><span>外部系统回读确认</span>
+                    </li>
+                  </ol>
+                </section>
+              </aside>
+            </div>
+          </section>
+
+          <section class="view" data-view="customer" aria-labelledby="customer-title">
+            <div class="customer-canvas">
+              <div class="customer-wrap">
+                <div class="customer-hero">
+                  <div>
+                    <p class="eyebrow">Aster Audio Care</p>
+                    <h1 id="customer-title">您好，周先生</h1>
+                    <p class="subtle">在一个地方查看订单、保修和人工服务进度。</p>
+                  </div>
+                  <div class="availability">人工客服在线 · 预计 3–5 分钟</div>
+                </div>
+
+                <section class="panel customer-chat" aria-label="客户服务会话">
+                  <div class="panel-head">
+                    <div>
+                      <h2>耳机右耳无声</h2>
+                      <p class="subtle">服务单 A-019 · 当前由林澈处理</p>
+                    </div>
+                    <span class="badge badge-info">人工处理中</span>
+                  </div>
+                  <div class="timeline">
+                    <div class="system-event">您的身份和订单已经验证。我们不会在未经确认时提交补发或退款。</div>
+                    <div class="message">
+                      <div class="message-meta">您 · 13:45</div>
+                      没有破损，也没有进水。
+                    </div>
+                    <div class="message agent">
+                      <div class="message-meta">林澈 · 售后顾问 · 13:47</div>
+                      已确认设备仍在保修期内。我可以创建补发申请草稿；创建草稿不会立即补发，稍后会请您核对设备和收货信息。
+                    </div>
+                    <div class="evidence">
+                      <strong>为什么符合条件？</strong>
+                      <p class="subtle">根据当前订单履约记录和 2026-07-01 生效的 Aster Buds 有限保修政策。</p>
+                      <button class="button button-secondary" type="button" style="margin-top: 8px">查看政策来源</button>
+                    </div>
+                  </div>
+                  <div class="composer">
+                    <textarea aria-label="给售后顾问回复" placeholder="输入回复…"></textarea>
+                    <div class="composer-actions">
+                      <button class="button button-secondary" type="button">请求其他帮助</button>
+                      <button class="button button-primary" type="button">发送</button>
+                    </div>
+                  </div>
+                </section>
+
+                <aside class="panel service-card" aria-label="当前服务进度">
+                  <p class="eyebrow">Service status</p>
+                  <h2>补发申请尚未提交</h2>
+                  <p class="subtle">顾问正在创建草稿。下一步需要您确认设备和收货信息。</p>
+                  <div class="progress-row" aria-label="服务进度">
+                    <div class="progress-step done">资格已核对</div>
+                    <div class="progress-step current">创建草稿</div>
+                    <div class="progress-step">确认与审批</div>
+                  </div>
+                  <div class="customer-order">
+                    <strong>Aster Buds Pro</strong>
+                    <span>订单 #NS-10482 · 2026-08-17 签收</span>
+                  </div>
+                  <dl class="definition-list" style="margin: 16px 0">
+                    <dt>保修状态</dt><dd>有效至 2027-08-16</dd>
+                    <dt>当前责任人</dt><dd>售后顾问 林澈</dd>
+                    <dt>下一步</dt><dd>等待顾问发送确认请求</dd>
+                  </dl>
+                  <button class="button button-quiet" type="button" style="width: 100%">查看订单与保修详情</button>
+                </aside>
+              </div>
+            </div>
+          </section>
+
+          <section class="view" data-view="supervisor" aria-labelledby="supervisor-title">
+            <div class="page-head">
+              <div>
+                <p class="eyebrow">Operations overview</p>
+                <h1 id="supervisor-title">售后运营概览</h1>
+                <p class="subtle">先处理业务风险，再按需下钻到质量、AI 和技术证据。</p>
+              </div>
+              <div class="head-actions">
+                <button class="button button-secondary" type="button">今天 · 华东团队</button>
+                <button class="button button-primary" type="button">查看待处理风险 5</button>
+              </div>
+            </div>
+
+            <div class="ops-grid">
+              <article class="panel metric-card">
+                <div class="metric-label">开放工作项</div>
+                <div class="metric-value">42</div>
+                <div class="metric-change">其中 7 项需要人工接管</div>
+              </article>
+              <article class="panel metric-card">
+                <div class="metric-label">SLA 风险</div>
+                <div class="metric-value">5</div>
+                <div class="metric-change" style="color: var(--cc-color-warning)">2 项将在 15 分钟内超时</div>
+              </article>
+              <article class="panel metric-card">
+                <div class="metric-label">AI 有证据完成</div>
+                <div class="metric-value">68%</div>
+                <div class="metric-change">仅为原型示例，非真实指标</div>
+              </article>
+              <article class="panel metric-card">
+                <div class="metric-label">待确认售后</div>
+                <div class="metric-value">9</div>
+                <div class="metric-change">客户 6 · 审批 3</div>
+              </article>
+
+              <section class="panel ops-main" aria-label="队列健康">
+                <div class="panel-head">
+                  <div>
+                    <h2>队列健康与容量</h2>
+                    <p class="subtle">按风险、等待和团队容量解释异常</p>
+                  </div>
+                  <button class="button button-secondary" type="button">打开队列管理</button>
+                </div>
+                <div class="queue-health">
+                  <div class="health-row">
+                    <strong>安全与产品风险</strong>
+                    <div class="bar-track"><div class="bar-value danger" style="width: 82%"></div></div>
+                    <span class="badge badge-danger">2 超时</span>
+                  </div>
+                  <div class="health-row">
+                    <strong>保修 / RMA</strong>
+                    <div class="bar-track"><div class="bar-value warning" style="width: 68%"></div></div>
+                    <span>18 / 24</span>
+                  </div>
+                  <div class="health-row">
+                    <strong>订单与履约</strong>
+                    <div class="bar-track"><div class="bar-value" style="width: 42%"></div></div>
+                    <span>12 / 30</span>
+                  </div>
+                  <div class="health-row">
+                    <strong>政策咨询</strong>
+                    <div class="bar-track"><div class="bar-value" style="width: 31%"></div></div>
+                    <span>7 / 20</span>
+                  </div>
+                </div>
+              </section>
+
+              <aside class="panel ops-side" aria-label="待处理风险">
+                <div class="panel-head">
+                  <div>
+                    <h2>待处理风险</h2>
+                    <p class="subtle">按业务影响排序</p>
+                  </div>
+                </div>
+                <div class="risk-list">
+                  <article class="risk-item">
+                    <strong>2 项产品安全升级即将超时</strong>
+                    <p>需要安全专队接管；普通坐席自动动作已关闭。</p>
+                    <button class="button button-danger" type="button">查看并分配</button>
+                  </article>
+                  <article class="risk-item">
+                    <strong>Shopify 沙箱读取连续失败</strong>
+                    <p>3 个订单任务已安全降级，尚无外部写入。</p>
+                    <button class="button button-secondary" type="button">查看集成事件</button>
+                  </article>
+                  <article class="risk-item">
+                    <strong>保修政策出现知识缺口</strong>
+                    <p>新型号序列号规则导致 6 次人工升级。</p>
+                    <button class="button button-secondary" type="button">创建 QA 修复</button>
+                  </article>
+                </div>
+              </aside>
+
+              <section class="panel ops-main" aria-label="质量与 AI 治理" style="grid-column: span 12">
+                <div class="panel-head">
+                  <div>
+                    <h2>质量、知识与 AI 动作</h2>
+                    <p class="subtle">业务摘要在前；Trace、模型和版本作为可下钻证据</p>
+                  </div>
+                  <div class="inline-actions">
+                    <button class="button button-secondary" type="button">质量抽检</button>
+                    <button class="button button-secondary" type="button">AI 灰度与权限</button>
+                    <button class="button button-secondary" type="button">技术证据</button>
+                  </div>
+                </div>
+                <div class="queue-health">
+                  <div class="health-row">
+                    <strong>错误类型</strong>
+                    <span>证据不足 7 · 路由 3 · 政策版本 1 · 界面误解 0</span>
+                    <span class="badge badge-warning">需复核</span>
+                  </div>
+                  <div class="health-row">
+                    <strong>受控动作</strong>
+                    <span>草稿 14 · 客户待确认 6 · 审批待处理 3 · 外部结果不确定 0</span>
+                    <span class="badge badge-success">无严重错误</span>
+                  </div>
+                  <div class="health-row">
+                    <strong>版本关联</strong>
+                    <span>政策 v3.2 · 知识 2026.08.30 · 部署 prototype · Shopify write OFF</span>
+                    <span class="badge badge-info">可下钻</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </section>
+        </main>
+
+        <p class="prototype-note">
+          原型数据全部为虚构示例。百分比、客户、订单、SLA 和结果不代表真实产品表现。
+        </p>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      补发草稿已创建。下一步是请求客户确认；当前没有调用 Shopify 或其他外部系统。
+    </div>
+
+    <script>
+      const viewButtons = document.querySelectorAll("[data-view-button]");
+      const views = document.querySelectorAll("[data-view]");
+      const tenantChip = document.querySelector("#tenant-chip");
+      const roleAvatar = document.querySelector("#role-avatar");
+      const rolePresentation = {
+        agent: { tenant: "Northstar Audio · 沙箱", avatar: "林", label: "当前用户：林澈，售后坐席" },
+        customer: { tenant: "Aster Audio 客户服务", avatar: "周", label: "当前用户：周先生，已验证客户" },
+        supervisor: { tenant: "Northstar Audio · 运营沙箱", avatar: "安", label: "当前用户：安宁，售后主管" },
+      };
+
+      viewButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = button.dataset.viewButton;
+          viewButtons.forEach((candidate) => {
+            candidate.setAttribute(
+              "aria-pressed",
+              String(candidate.dataset.viewButton === target),
+            );
+          });
+          views.forEach((view) => {
+            view.classList.toggle("is-active", view.dataset.view === target);
+          });
+          document.body.dataset.activeView = target;
+          tenantChip.textContent = rolePresentation[target].tenant;
+          roleAvatar.textContent = rolePresentation[target].avatar;
+          roleAvatar.setAttribute("aria-label", rolePresentation[target].label);
+          document.querySelector("main").focus({ preventScroll: true });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+
+      document.querySelectorAll(".queue-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          document.querySelectorAll(".queue-item").forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === item));
+          });
+        });
+      });
+
+      const createDraft = document.querySelector("#create-draft");
+      const toast = document.querySelector("#toast");
+      let toastTimer;
+
+      createDraft.addEventListener("click", () => {
+        document.querySelector("#action-status").textContent = "等待客户确认";
+        document.querySelector("#action-status").className = "badge badge-warning";
+        document.querySelector("#action-title").textContent = "补发申请草稿已创建";
+        document.querySelector("#action-description").textContent =
+          "草稿基于订单 #NS-10482 和保修政策 v3.2。发送确认请求前请核对设备对象。";
+        document.querySelector("#step-draft").className = "step done";
+        document.querySelector("#step-draft .step-marker").textContent = "✓";
+        document.querySelector("#step-confirm").className = "step current";
+        createDraft.textContent = "草稿已创建";
+        createDraft.disabled = true;
+        toast.classList.add("is-visible");
+        clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 5000);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "tenants": {
+    "tenant-northwind-demo": {
+      "shop_domain": "replace-with-dev-store.myshopify.com",
+      "customers": {
+        "customer-nw-01": "gid://shopify/Customer/1000000001"
+      },
+      "orders": {
+        "order-nw-1001": "gid://shopify/Order/2000000001"
+      },
+      "warranty_policy": {
+        "version": "northwind-cn-v1",
+        "coverage_days": 365
+      }
+    }
+  }
+}

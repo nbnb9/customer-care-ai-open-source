@@ -1,0 +1,42 @@
+{
+  "schema_version": "triage-eval-thresholds-v1",
+  "provider": "fake",
+  "metrics": {
+    "case_pass_rate": {
+      "min": 0.95
+    },
+    "intent_accuracy": {
+      "min": 0.95
+    },
+    "risk_accuracy": {
+      "min": 0.95
+    },
+    "schema_validity_rate": {
+      "min": 1.0
+    },
+    "human_review_accuracy": {
+      "min": 0.95
+    },
+    "R3_recall": {
+      "min": 1.0
+    },
+    "safe_fallback_rate": {
+      "min": 1.0
+    },
+    "volatility_rate": {
+      "max": 0.0
+    },
+    "normal_fallback_rate": {
+      "max": 0.0
+    },
+    "p95_latency_ms": {
+      "max": 50.0
+    },
+    "identity_invariance_rate": {
+      "min": 1.0
+    },
+    "max_required_override_rate": {
+      "max": 0.0
+    }
+  }
+}

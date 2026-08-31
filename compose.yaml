@@ -1,0 +1,336 @@
+name: ${COMPOSE_PROJECT_NAME:-customer-care-ai-full}
+
+x-database-environment: &database-environment
+  APP_ENV: development
+  DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+  POSTGRES_DB: ${POSTGRES_DB:-customer_care}
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: ${POSTGRES_USER:-customer_care_app}
+  PYTHONUNBUFFERED: "1"
+
+x-api-build: &api-build
+  context: .
+  dockerfile: apps/api/Dockerfile
+  args:
+    BUILD_VERSION: ${DEPLOYMENT_VERSION:-compose-local}
+
+x-worker-build: &worker-build
+  context: .
+  dockerfile: apps/worker/Dockerfile
+  args:
+    BUILD_VERSION: ${DEPLOYMENT_VERSION:-compose-local}
+
+x-python-security: &python-security
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+
+x-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg17-bookworm@sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-customer_care}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_USER: ${POSTGRES_USER:-customer_care_app}
+    secrets:
+      - postgres_password
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-15432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    logging: *bounded-logging
+
+  redis:
+    image: redis:7.2.15-alpine@sha256:05a97a479bc73de66f087dc05b569010772880f778cc8671fa6b8aadee32e5c6
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-16379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+    logging: *bounded-logging
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-06-13T11-33-47Z@sha256:064117214caceaa8d8a90ef7caa58f2b2aeb316b5156afe9ee8da5b4d83e12c8
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_root_password
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-customer_care_local_admin}
+    secrets:
+      - minio_root_password
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-19000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-19001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    logging: *bounded-logging
+
+  migrate:
+    image: customer-care-ai-api:${IMAGE_TAG:-local}
+    build: *api-build
+    command: ["alembic", "upgrade", "head"]
+    environment: *database-environment
+    secrets:
+      - postgres_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    <<: *python-security
+    logging: *bounded-logging
+
+  bootstrap:
+    image: customer-care-ai-api:${IMAGE_TAG:-local}
+    build: *api-build
+    command: ["python", "-m", "app.bootstrap"]
+    environment: *database-environment
+    secrets:
+      - postgres_password
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    <<: *python-security
+    logging: *bounded-logging
+
+  api:
+    image: customer-care-ai-api:${IMAGE_TAG:-local}
+    build: *api-build
+    environment:
+      <<: *database-environment
+      ALLOW_DEMO_IDENTITY: "true"
+      CORS_ALLOWED_ORIGINS: ${COMPOSE_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      CUSTOMER_TOOLS_PROVIDER: mock
+      DEPLOYMENT_VERSION: ${DEPLOYMENT_VERSION:-compose-local}
+      LLM_BASE_URL: ""
+      LLM_MODEL: ""
+      LLM_PROVIDER: fake
+      REDIS_URL: redis://redis:6379/0
+      R0_SELF_SERVICE_MASTER_ENABLED: "false"
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-customer_care_local_admin}
+      S3_BUCKET: ${S3_BUCKET:-customercare}
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_SECRET_KEY_FILE: /run/secrets/minio_root_password
+    secrets:
+      - postgres_password
+      - minio_root_password
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    init: true
+    restart: unless-stopped
+    <<: *python-security
+    logging: *bounded-logging
+
+  knowledge-worker:
+    image: customer-care-ai-worker:${IMAGE_TAG:-local}
+    build: *worker-build
+    command:
+      - python
+      - -m
+      - app.modules.knowledge.worker
+      - --poll-seconds
+      - "2"
+    environment:
+      <<: *database-environment
+      DEPLOYMENT_VERSION: ${DEPLOYMENT_VERSION:-compose-local}
+      LLM_PROVIDER: fake
+    secrets:
+      - postgres_password
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+    <<: *python-security
+    logging: *bounded-logging
+
+  after-sales-worker:
+    image: customer-care-ai-worker:${IMAGE_TAG:-local}
+    build: *worker-build
+    command:
+      - python
+      - -m
+      - app.modules.after_sales.worker
+      - --poll-seconds
+      - "2"
+    environment:
+      <<: *database-environment
+      DEPLOYMENT_VERSION: ${DEPLOYMENT_VERSION:-compose-local}
+      LLM_PROVIDER: fake
+    secrets:
+      - postgres_password
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+    <<: *python-security
+    logging: *bounded-logging
+
+  web:
+    image: customer-care-ai-web:${IMAGE_TAG:-local}
+    build:
+      context: apps/web
+      dockerfile: Dockerfile
+      args:
+        BUILD_VERSION: ${DEPLOYMENT_VERSION:-compose-local}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    environment:
+      HOSTNAME: 0.0.0.0
+      NODE_ENV: production
+      PORT: "3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    volumes:
+      - web_cache:/app/.next/cache
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    logging: *bounded-logging
+
+  prometheus:
+    profiles: ["observability"]
+    image: prom/prometheus:v3.14.0@sha256:5ce7540c3c00ef4ab0c9d2c995c6a5b9c421f44b4a115d97a2c7af3b1c21cbb0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-19090}:9090"
+    volumes:
+      - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9090/-/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    logging: *bounded-logging
+
+  grafana:
+    profiles: ["observability"]
+    image: grafana/grafana:13.2.0@sha256:3fd54ae1214669f8355f065ec9f6445d5279a3d77095ab048ca045685272429b
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-customer-care-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    secrets:
+      - grafana_admin_password
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-13000}:3000"
+    volumes:
+      - ./infra/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana_data:/var/lib/grafana
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+    logging: *bounded-logging
+
+secrets:
+  postgres_password:
+    file: ./infra/compose/secrets/postgres_password
+  minio_root_password:
+    file: ./infra/compose/secrets/minio_root_password
+  grafana_admin_password:
+    file: ./infra/compose/secrets/grafana_admin_password
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  web_cache:
+  prometheus_data:
+  grafana_data:

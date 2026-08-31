@@ -1,0 +1,22 @@
+{
+  "schema_version": "qa-regression-catalog-v1",
+  "source": "synthetic",
+  "cases": [
+    {
+      "id": "qa-rag-current-return-policy-v2",
+      "evaluation_suite": "rag",
+      "evaluation_case_id": "rag-qa-current-return-policy-v2",
+      "category": "outdated_policy",
+      "remediation_type": "knowledge",
+      "description": "当前中国北区退货政策必须引用 2.0.0 版本，历史 1.0.0 不得作为当前答案。"
+    },
+    {
+      "id": "qa-triage-r2-replacement-routing",
+      "evaluation_suite": "triage",
+      "evaluation_case_id": "triage-qa-r2-replacement-routing",
+      "category": "incorrect_routing",
+      "remediation_type": "rule",
+      "description": "补发或换货请求必须在模型前后均进入 R2 人工审核，而非 R0 FAQ。"
+    }
+  ]
+}

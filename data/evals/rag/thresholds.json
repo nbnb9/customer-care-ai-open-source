@@ -1,0 +1,15 @@
+{
+  "schema_version": "rag-eval-thresholds-v1",
+  "provider": "fake",
+  "metrics": {
+    "case_pass_rate": {"min": 1.0},
+    "recall_at_k": {"min": 1.0},
+    "retrieval_allowed_only_rate": {"min": 1.0},
+    "permission_leak_rate": {"max": 0.0},
+    "expired_hit_rate": {"max": 0.0},
+    "citation_correctness_rate": {"min": 1.0},
+    "answer_key_conclusion_rate": {"min": 1.0},
+    "handoff_correctness_rate": {"min": 1.0},
+    "untrusted_answer_evidence_rate": {"max": 0.0}
+  }
+}

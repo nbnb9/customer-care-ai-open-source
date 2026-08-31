@@ -1,0 +1,32 @@
+# 密钥和本机配置
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node.js / Next.js
+node_modules/
+.next/
+dist/
+coverage/
+
+# 本地或敏感数据
+data/private/
+data/raw/
+data/exports/
+
+# macOS 与日志
+.DS_Store
+*.log
